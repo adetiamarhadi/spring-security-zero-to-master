@@ -4,6 +4,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.crypto.password.NoOpPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
@@ -17,18 +18,20 @@ public class ProjectSecurityConfig {
         /**
          * old
          */
-//        http.authorizeHttpRequests()
+//        http.csrf().disable()
+//                .authorizeHttpRequests()
 //                .requestMatchers("/myAccounts", "/myBalance", "/myLoans", "/myCards").authenticated()
-//                .requestMatchers("/notices", "/contact").permitAll()
+//                .requestMatchers("/notices", "/contact", "/register").permitAll()
 //                .and().formLogin()
 //                .and().httpBasic();
 
         /**
          * new
          */
-        http.authorizeHttpRequests(request -> request
+        http.csrf(AbstractHttpConfigurer::disable)
+                .authorizeHttpRequests(request -> request
                         .requestMatchers("/myAccounts", "/myBalance", "/myLoans", "/myCards").authenticated()
-                        .requestMatchers("/notices", "/contact").permitAll()
+                        .requestMatchers("/notices", "/contact", "/register").permitAll()
                 )
                 .formLogin(Customizer.withDefaults())
                 .httpBasic(Customizer.withDefaults());
