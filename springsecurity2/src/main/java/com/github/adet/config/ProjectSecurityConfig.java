@@ -9,6 +9,11 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.NoOpPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+
+import java.util.Collections;
 
 @Configuration
 public class ProjectSecurityConfig {
@@ -19,9 +24,20 @@ public class ProjectSecurityConfig {
         /**
          * old
          */
-//        http.csrf().disable()
+//        http.cors()
+//                .configurationSource((servletRequest) -> {
+//                    CorsConfiguration corsConfiguration = new CorsConfiguration();
+//                    corsConfiguration.setAllowedOrigins(Collections.singletonList("http://localhost:4200"));
+//                    corsConfiguration.setAllowedMethods(Collections.singletonList("*"));
+//                    corsConfiguration.setAllowCredentials(true);
+//                    corsConfiguration.setAllowedHeaders(Collections.singletonList("*"));
+//                    corsConfiguration.setMaxAge(3600L);
+//                    return corsConfiguration;
+//                })
+//                .and()
+//                .csrf().disable()
 //                .authorizeHttpRequests()
-//                .requestMatchers("/myAccounts", "/myBalance", "/myLoans", "/myCards").authenticated()
+//                .requestMatchers("/myAccount", "/myBalance", "/myLoans", "/myCards", "/user").authenticated()
 //                .requestMatchers("/notices", "/contact", "/register").permitAll()
 //                .and().formLogin()
 //                .and().httpBasic();
@@ -29,9 +45,10 @@ public class ProjectSecurityConfig {
         /**
          * new
          */
-        http.csrf(AbstractHttpConfigurer::disable)
+        http.cors(Customizer.withDefaults())
+                .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(request -> request
-                        .requestMatchers("/myAccounts", "/myBalance", "/myLoans", "/myCards").authenticated()
+                        .requestMatchers("/myAccount", "/myBalance", "/myLoans", "/myCards", "/user").authenticated()
                         .requestMatchers("/notices", "/contact", "/register").permitAll()
                 )
                 .formLogin(Customizer.withDefaults())
@@ -43,5 +60,19 @@ public class ProjectSecurityConfig {
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
+    }
+
+    @Bean
+    CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration configuration = new CorsConfiguration();
+        configuration.setAllowedOrigins(Collections.singletonList("http://localhost:4200"));
+        configuration.setAllowedMethods(Collections.singletonList("*"));
+        configuration.setAllowCredentials(true);
+        configuration.setAllowedHeaders(Collections.singletonList("*"));
+        configuration.setMaxAge(3600L);
+
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", configuration);
+        return source;
     }
 }
