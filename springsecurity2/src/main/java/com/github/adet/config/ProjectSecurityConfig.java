@@ -6,7 +6,6 @@ import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.security.crypto.password.NoOpPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.web.cors.CorsConfiguration;
@@ -35,7 +34,8 @@ public class ProjectSecurityConfig {
 //                    return corsConfiguration;
 //                })
 //                .and()
-//                .csrf().disable()
+//                .csrf().ignoringRequestMatchers("/contact", "/register")
+//                .and()
 //                .authorizeHttpRequests()
 //                .requestMatchers("/myAccount", "/myBalance", "/myLoans", "/myCards", "/user").authenticated()
 //                .requestMatchers("/notices", "/contact", "/register").permitAll()
@@ -46,7 +46,7 @@ public class ProjectSecurityConfig {
          * new
          */
         http.cors(Customizer.withDefaults())
-                .csrf(AbstractHttpConfigurer::disable)
+                .csrf(csrf -> csrf.ignoringRequestMatchers("/contact", "/register"))
                 .authorizeHttpRequests(request -> request
                         .requestMatchers("/myAccount", "/myBalance", "/myLoans", "/myCards", "/user").authenticated()
                         .requestMatchers("/notices", "/contact", "/register").permitAll()
