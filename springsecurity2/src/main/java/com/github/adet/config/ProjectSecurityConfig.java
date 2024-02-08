@@ -1,13 +1,18 @@
 package com.github.adet.config;
 
+import com.github.adet.filter.CsrfCookieFilter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
+import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
+import org.springframework.security.web.csrf.CsrfTokenRequestAttributeHandler;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -20,10 +25,17 @@ public class ProjectSecurityConfig {
     @Bean
     SecurityFilterChain defaultSecurityFilterChain(HttpSecurity http) throws Exception {
 
+        CsrfTokenRequestAttributeHandler csrfTokenRequestAttributeHandler = new CsrfTokenRequestAttributeHandler();
+        csrfTokenRequestAttributeHandler.setCsrfRequestAttributeName("_csrf");
+
         /**
          * old
          */
-//        http.cors()
+//        http.securityContext()
+//                .requireExplicitSave(false)
+//                .and()
+//                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.ALWAYS))
+//                .cors()
 //                .configurationSource((servletRequest) -> {
 //                    CorsConfiguration corsConfiguration = new CorsConfiguration();
 //                    corsConfiguration.setAllowedOrigins(Collections.singletonList("http://localhost:4200"));
@@ -34,8 +46,10 @@ public class ProjectSecurityConfig {
 //                    return corsConfiguration;
 //                })
 //                .and()
-//                .csrf().ignoringRequestMatchers("/contact", "/register")
-//                .and()
+//                .csrf(csrf -> csrf.csrfTokenRequestHandler(csrfTokenRequestAttributeHandler)
+//                        .ignoringRequestMatchers("/contact", "/register")
+//                        .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse()))
+//                .addFilterAfter(new CsrfCookieFilter(), BasicAuthenticationFilter.class)
 //                .authorizeHttpRequests()
 //                .requestMatchers("/myAccount", "/myBalance", "/myLoans", "/myCards", "/user").authenticated()
 //                .requestMatchers("/notices", "/contact", "/register").permitAll()
@@ -45,8 +59,13 @@ public class ProjectSecurityConfig {
         /**
          * new
          */
-        http.cors(Customizer.withDefaults())
-                .csrf(csrf -> csrf.ignoringRequestMatchers("/contact", "/register"))
+        http.securityContext(ctx -> ctx.requireExplicitSave(false))
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.ALWAYS))
+                .cors(Customizer.withDefaults())
+                .csrf(csrf -> csrf.csrfTokenRequestHandler(csrfTokenRequestAttributeHandler)
+                        .ignoringRequestMatchers("/contact", "/register")
+                        .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse()))
+                .addFilterAfter(new CsrfCookieFilter(), BasicAuthenticationFilter.class)
                 .authorizeHttpRequests(request -> request
                         .requestMatchers("/myAccount", "/myBalance", "/myLoans", "/myCards", "/user").authenticated()
                         .requestMatchers("/notices", "/contact", "/register").permitAll()
