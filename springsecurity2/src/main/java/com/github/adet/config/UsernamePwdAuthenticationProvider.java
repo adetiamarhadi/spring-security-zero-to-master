@@ -1,5 +1,6 @@
 package com.github.adet.config;
 
+import com.github.adet.model.Authority;
 import com.github.adet.model.Customers;
 import com.github.adet.repository.CustomersRepository;
 import org.springframework.security.authentication.AuthenticationProvider;
@@ -14,6 +15,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 @Component
 public class UsernamePwdAuthenticationProvider implements AuthenticationProvider {
@@ -44,16 +46,19 @@ public class UsernamePwdAuthenticationProvider implements AuthenticationProvider
             throw new BadCredentialsException("invalid password");
         }
 
-        GrantedAuthority grantedAuthority = new SimpleGrantedAuthority(customer.getRole());
-
-        List<GrantedAuthority> grantedAuthorityList = new ArrayList<>();
-        grantedAuthorityList.add(grantedAuthority);
-
-        return new UsernamePasswordAuthenticationToken(username, pwd, grantedAuthorityList);
+        return new UsernamePasswordAuthenticationToken(username, pwd, getGrantedAuthorities(customer.getAuthorities()));
     }
 
     @Override
     public boolean supports(Class<?> authentication) {
         return (UsernamePasswordAuthenticationToken.class.isAssignableFrom(authentication));
+    }
+
+    private List<GrantedAuthority> getGrantedAuthorities(Set<Authority> authorities) {
+        List<GrantedAuthority> grantedAuthorities = new ArrayList<>();
+        for (Authority authority : authorities) {
+            grantedAuthorities.add(new SimpleGrantedAuthority(authority.getName()));
+        }
+        return grantedAuthorities;
     }
 }
