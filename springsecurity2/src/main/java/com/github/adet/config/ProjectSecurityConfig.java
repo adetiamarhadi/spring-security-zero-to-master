@@ -3,6 +3,8 @@ package com.github.adet.config;
 import com.github.adet.filter.AuthoritiesLoggingAfterFilter;
 import com.github.adet.filter.AuthoritiesLoggingAtFilter;
 import com.github.adet.filter.CsrfCookieFilter;
+import com.github.adet.filter.JWTTokenGeneratorFilter;
+import com.github.adet.filter.JWTTokenValidatorFilter;
 import com.github.adet.filter.RequestValidationBeforeFilter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -20,6 +22,7 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
+import java.util.Arrays;
 import java.util.Collections;
 
 @Configuration
@@ -34,10 +37,9 @@ public class ProjectSecurityConfig {
         /**
          * old
          */
-//        http.securityContext()
-//                .requireExplicitSave(false)
+//        http
+//                .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
 //                .and()
-//                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.ALWAYS))
 //                .cors()
 //                .configurationSource((servletRequest) -> {
 //                    CorsConfiguration corsConfiguration = new CorsConfiguration();
@@ -45,6 +47,7 @@ public class ProjectSecurityConfig {
 //                    corsConfiguration.setAllowedMethods(Collections.singletonList("*"));
 //                    corsConfiguration.setAllowCredentials(true);
 //                    corsConfiguration.setAllowedHeaders(Collections.singletonList("*"));
+//                    corsConfiguration.setExposedHeaders(Arrays.asList("Authorization"));
 //                    corsConfiguration.setMaxAge(3600L);
 //                    return corsConfiguration;
 //                })
@@ -54,13 +57,19 @@ public class ProjectSecurityConfig {
 //                        .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse()))
 //                .addFilterAfter(new CsrfCookieFilter(), BasicAuthenticationFilter.class)
 //                .addFilterBefore(new RequestValidationBeforeFilter(), BasicAuthenticationFilter.class)
+//                .addFilterBefore(new JWTTokenValidatorFilter(), BasicAuthenticationFilter.class)
 //                .addFilterAt(new AuthoritiesLoggingAtFilter(), BasicAuthenticationFilter.class)
 //                .addFilterAfter(new AuthoritiesLoggingAfterFilter(), BasicAuthenticationFilter.class)
+//                .addFilterAfter(new JWTTokenGeneratorFilter(), BasicAuthenticationFilter.class)
 //                .authorizeHttpRequests()
-//                .requestMatchers("/myAccount").hasAuthority("VIEWACCOUNT")
-//                .requestMatchers("/myBalance").hasAnyAuthority("VIEWACCOUNT", "VIEWBALANCE")
-//                .requestMatchers("/myLoans").hasAuthority("VIEWLOANS")
-//                .requestMatchers("/myCards").hasAuthority("VIEWCARDS")
+////                .requestMatchers("/myAccount").hasAuthority("VIEWACCOUNT")
+////                .requestMatchers("/myBalance").hasAnyAuthority("VIEWACCOUNT", "VIEWBALANCE")
+////                .requestMatchers("/myLoans").hasAuthority("VIEWLOANS")
+////                .requestMatchers("/myCards").hasAuthority("VIEWCARDS")
+//                .requestMatchers("/myAccount").hasRole("USER")
+//                .requestMatchers("/myBalance").hasAnyRole("USER", "ADMIN")
+//                .requestMatchers("/myLoans").hasRole("USER")
+//                .requestMatchers("/myCards").hasRole("USER")
 //                .requestMatchers("/user").authenticated()
 //                .requestMatchers("/notices", "/contact", "/register").permitAll()
 //                .and().formLogin()
@@ -69,8 +78,8 @@ public class ProjectSecurityConfig {
         /**
          * new
          */
-        http.securityContext(ctx -> ctx.requireExplicitSave(false))
-                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.ALWAYS))
+        http
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .cors(Customizer.withDefaults())
                 .csrf(csrf -> csrf.csrfTokenRequestHandler(csrfTokenRequestAttributeHandler)
                         .ignoringRequestMatchers("/contact", "/register")
@@ -79,6 +88,8 @@ public class ProjectSecurityConfig {
                 .addFilterBefore(new RequestValidationBeforeFilter(), BasicAuthenticationFilter.class)
                 .addFilterAt(new AuthoritiesLoggingAtFilter(), BasicAuthenticationFilter.class)
                 .addFilterAfter(new AuthoritiesLoggingAfterFilter(), BasicAuthenticationFilter.class)
+                .addFilterAfter(new JWTTokenGeneratorFilter(), BasicAuthenticationFilter.class)
+                .addFilterBefore(new JWTTokenValidatorFilter(), BasicAuthenticationFilter.class)
                 .authorizeHttpRequests(request -> request
 //                        .requestMatchers("/myAccount").hasAuthority("VIEWACCOUNT")
 //                        .requestMatchers("/myBalance").hasAnyAuthority("VIEWACCOUNT", "VIEWBALANCE")
@@ -109,6 +120,7 @@ public class ProjectSecurityConfig {
         configuration.setAllowedMethods(Collections.singletonList("*"));
         configuration.setAllowCredentials(true);
         configuration.setAllowedHeaders(Collections.singletonList("*"));
+        configuration.setExposedHeaders(Collections.singletonList("Authorization"));
         configuration.setMaxAge(3600L);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
