@@ -2,11 +2,15 @@ package com.github.adet.controller;
 
 import com.github.adet.model.Contact;
 import com.github.adet.repository.ContactRepository;
+import org.springframework.security.access.prepost.PostFilter;
+import org.springframework.security.access.prepost.PreFilter;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.sql.Date;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Random;
 
 @RestController
@@ -19,10 +23,20 @@ public class ContactController {
     }
 
     @PostMapping("/contact")
-    public Contact saveContactInquiryDetails(@RequestBody Contact contact) {
+    @PreFilter("filterObject.contactName != 'Test'")
+//    @PostFilter("filterObject.contactName != 'Test'") // only prevent to not perform the response
+    public List<Contact> saveContactInquiryDetails(@RequestBody List<Contact> contacts) {
+
+        Contact contact = contacts.get(0);
         contact.setContactId(getServiceReqNumber());
         contact.setCreateDt(new Date(System.currentTimeMillis()));
-        return contactRepository.save(contact);
+
+        Contact contactDb = contactRepository.save(contact);
+
+        List<Contact> response = new ArrayList<>();
+        response.add(contactDb);
+
+        return response;
     }
 
     private String getServiceReqNumber() {
