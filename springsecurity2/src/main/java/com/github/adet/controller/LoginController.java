@@ -19,40 +19,18 @@ import java.util.List;
 public class LoginController {
 
     private final CustomersRepository customersRepository;
-    private final PasswordEncoder passwordEncoder;
 
     @Autowired
-    public LoginController(CustomersRepository customersRepository,
-                           PasswordEncoder passwordEncoder) {
+    public LoginController(CustomersRepository customersRepository) {
         this.customersRepository = customersRepository;
-        this.passwordEncoder = passwordEncoder;
-    }
-
-    @PostMapping("/register")
-    public ResponseEntity<String> registerUser(@RequestBody Customers customers) {
-        try {
-
-            String encodedPassword = this.passwordEncoder.encode(customers.getPwd());
-
-            customers.setPwd(encodedPassword);
-            customers.setCreateDt(String.valueOf(new Date(System.currentTimeMillis())));
-
-            this.customersRepository.save(customers);
-
-            return ResponseEntity.status(HttpStatus.CREATED).body("successfully created");
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("registerUser: " + e.getMessage());
-        }
     }
 
     @GetMapping("/user")
     public Customers getUserDetailsAfterLogin(Authentication authentication) {
         List<Customers> customers = customersRepository.findByEmail(authentication.getName());
-        if (customers.size() > 0) {
-            return customers.get(0);
-        } else {
+        if (null == customers || customers.isEmpty()) {
             return null;
         }
+        return customers.get(0);
     }
 }
